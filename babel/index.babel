@@ -1,0 +1,110 @@
+let countdown;
+
+class PomodoroClock extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      breakTime: 5,
+      sessionTime: 25,
+      timeLeft: 1500,
+      isStart: true,
+      isPaused: true
+     };
+    
+    this.handleStartStop = this.handleStartStop.bind(this);
+    this.timerCountdown = this.timerCountdown.bind(this);
+    this.decrementTimeLeft = this.decrementTimeLeft.bind(this);
+    this.handleReset = this.handleReset.bind(this);
+    this.setTime = this.setTime.bind(this);
+    
+
+  }
+  
+    handleStartStop() {
+      let currentTime;
+      if(this.state.isPaused) {
+        if(pause) {
+          currentTime = pause;
+          this.timerCountdown();
+          pause = "";
+        } else {
+          currentTime = this.state.sessionTime;
+          this.timerCountdown();
+        }
+        this.setState({
+          isPaused: false
+        });
+      } else {
+        pause = this.state.timeLeft;
+        clearInterval(countdown);
+        this.setState({
+          isPaused: false
+        });
+      }
+    }
+  
+    timerCountdown() {
+      countdown = setInterval(() => {
+        this.decrementTimeLeft();
+      }, 1000)
+    }
+  
+    decrementTimeLeft() {
+      this.setState ({
+        timeLeft: this.state.timeLeft - 1
+      });
+    }
+  
+    handleReset() {
+      this.setState ({
+        breakTime: 5,
+        sessionTime: 25,
+        timeLeft: 1500,
+        isStart: true,
+        isPaused: true
+      });
+    }
+  
+    setTime() {
+      let minutes = Math.floor(this.state.timeLeft / 60);
+      let seconds = this.state.timeLeft - minutes * 60;
+      seconds = seconds < 10 ? '0' + seconds : seconds;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      return minutes + ':' + seconds;
+    }
+  
+  render () {
+    return (
+      <div id="clock">
+        <div className="title"><h1>Pomodoro Clock</h1></div>
+        <div className="pomodoro">
+         <div className="time-controller">
+          <div id="break-timer">
+            <div id="break-label"><h3>Break Length</h3></div>
+            <button className="btn" id="break-decrement" value="-">&#8722;</button>
+            <div className="btn" id="break-length">{this.state.breakTime}</div>
+            <button className="btn" id="break-increment" value="+">&#43;</button>
+          </div>
+          <div id="session-timer">
+            <div id="session-label"><h3>Session Length</h3></div>
+            <button className="btn" id="session-decrement" value="-">&#8722;</button>
+            <div className="btn" id="session-length">{this.state.sessionTime}</div>
+            <button className="btn" id="session-increment" value="+">&#43;</button>
+          </div>
+          </div>
+          <div className="timer">
+            <div id="timer-label"><h3>Session</h3></div>
+            <div id="time-left">{this.setTime()}</div>
+            <div id="timer-control">
+              <button id="start_stop" onClick={this.handleStartStop}>Start/Stop</button>
+              <button id="reset" onClick={this.handleReset}>Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) 
+  }
+}
+
+ReactDOM.render(<PomodoroClock />, document.getElementById('app'));
