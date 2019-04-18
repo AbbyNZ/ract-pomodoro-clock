@@ -1,0 +1,182 @@
+let countdown;
+let stop;
+
+class PomodoroClock extends React.Component {
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      breakTime: 5,
+      sessionTime: 25,
+      timeLeft: 1500,
+      timerStatus: false,
+      timerLabel: 'Session',
+      clockInterval: null
+     };
+    
+    this.handleStartStop = this.handleStartStop.bind(this);
+    this.timerCountdown = this.timerCountdown.bind(this);
+    this.decrementTimeLeft = this.decrementTimeLeft.bind(this);
+    this.handleReset = this.handleReset.bind(this);
+    this.setTime = this.setTime.bind(this);
+    this.handleLengthControls = this.handleLengthControls.bind(this);
+    this.handleCheckTimer = this.handleCheckTimer.bind(this);
+  }
+  
+    handleStartStop() {
+      if(this.state.timerStatus === false) {
+        this.timerCountdown();
+        this.setState({
+            timerStatus: true
+          }); 
+      } else {
+          this.setState({
+            timerStatus: false,
+            clockInteval: clearInterval(this.state.clockInterval)  
+     
+        });
+      }
+    }
+  
+    timerCountdown() {
+      this.setState({
+        clockInterval: setInterval(() => {
+        this.decrementTimeLeft();
+        this.handleCheckTimer();
+        }, 1000)
+      });
+    }
+  
+    decrementTimeLeft() {
+      this.setState ({
+        timeLeft: this.state.timeLeft - 1
+      });
+    }
+  
+    handleReset() {
+      this.setState ({
+        breakTime: 5,
+        sessionTime: 25,
+        timeLeft: 1500,
+        timerStatus: false,
+        timerLabel: 'Session',
+        clockInterval: clearInterval(this.state.clockInterval)
+      });
+      
+      this.audioBeep.pause();
+      this.audioBeep.currentTime = 0;
+    }
+  
+    handleLengthControls(e) {
+      const inc = e.target.id;
+      if(this.state.timerStatus){
+        return null;
+      }
+      switch(inc) {
+        case "break-increment":
+          if(this.state.breakTime === 60) {
+            break;
+          }
+          this.setState({
+            breakTime: ++this.state.breakTime,
+            timeLeft: this.state.sessionTime * 60
+          });
+          break;
+        case "break-decrement":
+          if(this.state.breakTime === 1) {
+            break;
+          }
+          this.setState({
+            breakTime: --this.state.breakTime,
+            timeLeft: this.state.sessionTime * 60
+          });
+          break;
+        case "session-increment":
+          if(this.state.sessionTime === 60) {
+            break;
+          }
+          this.setState({
+            sessionTime: ++this.state.sessionTime,
+            timeLeft: this.state.sessionTime * 60
+          });
+          break;
+        case "session-decrement":
+          if(this.state.sessionTime === 1) {
+            break;
+          }
+          this.setState({
+            sessionTime: --this.state.sessionTime,
+            timeLeft: this.state.sessionTime * 60
+          });
+          break;
+      }
+    }
+  
+    setTime() {
+      let minutes = Math.floor(this.state.timeLeft / 60);
+      let seconds = this.state.timeLeft - minutes * 60;
+      seconds = seconds < 10 ? '0' + seconds : seconds;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      return minutes + ':' + seconds;
+    }
+  
+    handleCheckTimer() {
+      //if session is 0, break length will start
+      let timer = this.state.timeLeft;
+      
+      if(timer === 0) {
+        this.alarm(timer);
+        let timerLabel = this.state.timerLabel === "Session" ? "Break" : "Session";
+        let timeLeft = this.state.timerLabel === "Session" ? this.state.breakTime * 60 : this.state.sessionTime * 60;
+        this.setState({
+          timerLabel,
+          timeLeft
+        });
+      } /*else {
+        this.setState({
+          timeLeft: --this.state.timeLeft
+        });
+      }*/
+    }
+  
+  alarm(_timer) {
+    if(_timer === 0) {
+      this.audioBeep.play();
+    }
+  }
+  
+  render () {
+    return (
+      <div id="clock">
+        <div className="title"><h1>Pomodoro Clock</h1></div>
+        <div className="pomodoro">
+         <div className="time-controller">
+          <div id="break-timer">
+            <div id="break-label"><h3>Break Length</h3></div>
+            <button className="btn" id="break-decrement" value="-" onClick={this.handleLengthControls}>&#8722;</button>
+            <div className="btn" id="break-length">{this.state.breakTime}</div>
+            <button className="btn" id="break-increment" value="+" onClick={this.handleLengthControls}>&#43;</button>
+          </div>
+          <div id="session-timer">
+            <div id="session-label"><h3>Session Length</h3></div>
+            <button className="btn" id="session-decrement" value="-" onClick={this.handleLengthControls}>&#8722;</button>
+            <div className="btn" id="session-length">{this.state.sessionTime}</div>
+            <button className="btn" id="session-increment" value="+" onClick={this.handleLengthControls}>&#43;</button>
+          </div>
+          </div>
+          <div className="timer">
+            <div id="timer-label">{this.state.timerLabel}</div>
+            <div id="time-left">{this.setTime()}</div>
+            <div id="timer-control">
+              <button id="start_stop" onClick={this.handleStartStop} timerStatus={this.state.timerStatus}>{this.state.timerStatus === false ? 'Start' : 'Stop'}</button>
+              <button id="reset" onClick={this.handleReset}>Reset</button>
+            </div>
+          </div>
+        </div>
+        <audio id="beep" preload="auto" src="https://goo.gl/65cBl1" ref={(audio) => { this.audioBeep = audio}} />
+      </div>
+    ) 
+  }
+}
+
+ReactDOM.render(<PomodoroClock />, document.getElementById('app'));
